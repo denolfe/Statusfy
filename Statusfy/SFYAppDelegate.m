@@ -39,7 +39,7 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
     [menu addItem:self.playerStateMenuItem];
     [menu addItem:self.dockIconMenuItem];
     [menu addItemWithTitle:NSLocalizedString(@"Quit", nil) action:@selector(quit) keyEquivalent:@"q"];
-
+    
     [self.statusItem setMenu:menu];
     
     [self setStatusItemTitle];
@@ -53,23 +53,29 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
     NSString *trackName = [[self executeAppleScript:@"get name of current track"] stringValue];
     NSString *artistName = [[self executeAppleScript:@"get artist of current track"] stringValue];
     
-    if (trackName && artistName) {
-        NSString *titleText = [NSString stringWithFormat:@"%@ - %@", trackName, artistName];
-        
-        if ([self getPlayerStateVisibility]) {
-            NSString *playerState = [self determinePlayerStateText];
-            titleText = [NSString stringWithFormat:@"%@ (%@)", titleText, playerState];
-        }
-        
-        self.statusItem.image = nil;
-        self.statusItem.title = titleText;
+    NSString *titleText = @"";
+    
+    NSString *spotifyState = [self determinePlayerStateText];
+    
+    BOOL spotifyPlaying = false;
+    
+    if ([spotifyState isEqualToString:@"Playing"]) {
+        spotifyPlaying = true;
     }
-    else {
-        NSImage *image = [NSImage imageNamed:@"status_icon"];
-        [image setTemplate:true];
-        self.statusItem.image = image;
-        self.statusItem.title = nil;
+    
+    if (trackName && artistName && spotifyPlaying) {
+        titleText = [NSString stringWithFormat:@"%@ %@ - %@", titleText, artistName, trackName];
     }
+    
+    self.statusItem.image = nil;
+    
+    if ([self getPlayerStateVisibility]) {
+        NSString *playerState = [self determinePlayerStateText];
+        titleText = [NSString stringWithFormat:@"%@ (%@)", titleText, playerState];
+    }
+    
+    self.statusItem.title = titleText;
+    
 }
 
 #pragma mark - Executing AppleScript
@@ -77,6 +83,14 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
 - (NSAppleEventDescriptor *)executeAppleScript:(NSString *)command
 {
     command = [NSString stringWithFormat:@"if application \"Spotify\" is running then tell application \"Spotify\" to %@", command];
+    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:command];
+    NSAppleEventDescriptor *eventDescriptor = [appleScript executeAndReturnError:NULL];
+    return eventDescriptor;
+}
+
+- (NSAppleEventDescriptor *)executeMXAppleScript:(NSString *)command
+{
+    command = [NSString stringWithFormat:@"%@", command];
     NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:command];
     NSAppleEventDescriptor *eventDescriptor = [appleScript executeAndReturnError:NULL];
     return eventDescriptor;
@@ -132,7 +146,7 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
 
 - (void)setDockIconVisibility:(BOOL)visible
 {
-   [[NSUserDefaults standardUserDefaults] setBool:visible forKey:SFYPlayerDockIconPreferenceKey];
+    [[NSUserDefaults standardUserDefaults] setBool:visible forKey:SFYPlayerDockIconPreferenceKey];
 }
 
 - (void)toggleDockIconVisibility
