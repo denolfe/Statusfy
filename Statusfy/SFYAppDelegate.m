@@ -15,7 +15,6 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
 @interface SFYAppDelegate ()
 
 @property (nonatomic, strong) NSMenuItem *playerStateMenuItem;
-@property (nonatomic, strong) NSMenuItem *dockIconMenuItem;
 @property (nonatomic, strong) NSStatusItem *statusItem;
 
 @end
@@ -34,10 +33,10 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
     
     self.playerStateMenuItem = [[NSMenuItem alloc] initWithTitle:[self determinePlayerStateMenuItemTitle] action:@selector(togglePlayerStateVisibility) keyEquivalent:@""];
     
-    self.dockIconMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Hide Dock Icon", nil) action:@selector(toggleDockIconVisibility) keyEquivalent:@""];
+    //Hide icon
+    [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
     
     [menu addItem:self.playerStateMenuItem];
-    [menu addItem:self.dockIconMenuItem];
     [menu addItemWithTitle:NSLocalizedString(@"Quit", nil) action:@selector(quit) keyEquivalent:@"q"];
     
     [self.statusItem setMenu:menu];
@@ -135,41 +134,6 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
     }
     
     return playerStateText;
-}
-
-#pragma mark - Toggle Dock Icon
-
-- (BOOL)getDockIconVisibility
-{
-    return [[NSUserDefaults standardUserDefaults] boolForKey:SFYPlayerDockIconPreferenceKey];
-}
-
-- (void)setDockIconVisibility:(BOOL)visible
-{
-    [[NSUserDefaults standardUserDefaults] setBool:visible forKey:SFYPlayerDockIconPreferenceKey];
-}
-
-- (void)toggleDockIconVisibility
-{
-    [self setDockIconVisibility:![self getDockIconVisibility]];
-    self.dockIconMenuItem.title = [self determineDockIconMenuItemTitle];
-    
-    if(![self getDockIconVisibility])
-    {
-        //Apple recommended method to show and hide dock icon
-        //hide icon
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
-    }
-    else
-    {
-        //show icon
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
-    }
-}
-
-- (NSString *)determineDockIconMenuItemTitle
-{
-    return [self getDockIconVisibility] ? NSLocalizedString(@"Hide Dock Icon", nil) : NSLocalizedString(@"Show Dock Icon", nil);
 }
 
 #pragma mark - Quit
