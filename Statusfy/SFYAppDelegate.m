@@ -63,6 +63,8 @@ static NSString * const SFYPlayerDockIconPreferenceKey = @"YES";
     }
     
     if (trackName && artistName && spotifyPlaying) {
+        trackName = [trackName stringByReplacingOccurrencesOfString:@" - Original Mix" withString:@""];
+        trackName = [trackName stringByReplacingOccurrencesOfString:@" (Original Mix)" withString:@""];
         titleText = [NSString stringWithFormat:@"%@ %@ - %@", titleText, artistName, trackName];
     }
     
